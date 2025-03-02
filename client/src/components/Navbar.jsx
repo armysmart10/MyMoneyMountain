@@ -6,10 +6,10 @@ const Navbar = ({ currentUser }) => {
   return (
     <nav className="navbar">
       <div className="container">
-        <Link to="/" className="logo">FinanceHub</Link>
+        <Link to="/" className="logo">Money Mountain</Link>
         <ul className="nav-links">
           <li><Link to="/dashboard">Dashboard</Link></li>
-          <li><Link to="/accounts">Accounts</Link></li> {/* Add Accounts link */}
+          <li><Link to="/accounts">Accounts</Link></li>
           <li><Link to="/investments">Investments</Link></li>
           <li><Link to="/planning">Planning</Link></li>
           <li><Link to="/support">Support</Link></li>
