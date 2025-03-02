@@ -6,10 +6,17 @@ const Accounts = ({ currentUser }) => {
   const [newAccount, setNewAccount] = useState({ name: '', type: 'Checking', balance: '' });
 
   useEffect(() => {
-    if (currentUser && currentUser.uid) {
-      // Load accounts from localStorage or server for the current user
-      const savedAccounts = JSON.parse(localStorage.getItem(currentUser.uid)) || [];
-      setAccounts(savedAccounts);
+    if (currentUser) {
+      console.log('Current user:', currentUser);
+      if (currentUser.uid) {
+        // Load accounts from localStorage or server for the current user
+        const savedAccounts = JSON.parse(localStorage.getItem(currentUser.uid)) || [];
+        setAccounts(savedAccounts);
+      } else {
+        console.error('Current user does not have a uid:', currentUser);
+      }
+    } else {
+      console.error('Current user is undefined');
     }
   }, [currentUser]);
 
@@ -20,7 +27,7 @@ const Accounts = ({ currentUser }) => {
 
   const handleAddAccount = () => {
     if (!currentUser || !currentUser.uid) {
-      console.error('User not logged in.');
+      console.error('User not logged in or uid is missing.');
       return;
     }
     const updatedAccounts = [...accounts, newAccount];
