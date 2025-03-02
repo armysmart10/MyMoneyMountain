@@ -6,8 +6,8 @@ const app = express();
 app.use(bodyParser.json());
 
 const plaidClient = new plaid.Client({
-  clientID: 'your-client-id',
-  secret: 'your-secret',
+  clientID: '67755355491dca001bd3009a',
+  secret: '9f389e8dce2098eea8a862c9f57c8b',
   env: plaid.environments.sandbox, // Use the appropriate environment
 });
 
