@@ -1,11 +1,10 @@
+// client/src/firestore.js
 import { 
   collection, 
   getDocs, 
   addDoc, 
   deleteDoc, 
   doc, 
-  getDoc, 
-  updateDoc, 
   runTransaction 
 } from "firebase/firestore";
 import { db } from "./firebase";
