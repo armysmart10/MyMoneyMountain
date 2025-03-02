@@ -50,3 +50,12 @@ export const deleteTransaction = async (userId, accountId, transactionId) => {
     throw error;
   }
 };
+
+export const deleteAccount = async (userId, accountId) => {
+  try {
+    await deleteDoc(doc(db, `users/${userId}/accounts`, accountId));
+  } catch (error) {
+    console.error("Error deleting account:", error);
+    throw error;
+  }
+};
