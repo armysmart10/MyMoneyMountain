@@ -1,0 +1,12 @@
+/* client/src/components/CTA.css */
+.cta {
+  background: #e3f2fd;
+  padding: 3rem 0;
+  text-align: center;
+}
+
+.cta h2 {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+  color: #1976d2;
+}

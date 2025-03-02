@@ -1,0 +1,49 @@
+/* client/src/components/Navbar.css */
+.navbar {
+  background: #fff;
+  padding: 1rem 0;
+  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.1);
+}
+
+.navbar .logo {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1976d2;
+  text-decoration: none;
+}
+
+.nav-links {
+  list-style: none;
+  display: flex;
+  margin-left: auto;
+}
+
+.nav-links li {
+  margin: 0 1rem;
+}
+
+.nav-links li a {
+  color: #555;
+  text-decoration: none;
+  transition: color 0.3s;
+}
+
+.nav-links li a:hover {
+  color: #1976d2;
+}
+
+.nav-action .btn {
+  padding: 0.5rem 1rem;
+  border: 1px solid #1976d2;
+  color: #1976d2;
+  border-radius: 4px;
+  text-decoration: none;
+  margin-left: 0.5rem;
+  transition: background 0.3s, color 0.3s;
+}
+
+.nav-action .btn-primary {
+  background: #1976d2;
+  color: #fff;
+  border: none;
+}
