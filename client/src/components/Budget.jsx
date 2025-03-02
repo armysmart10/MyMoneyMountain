@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { fetchAccounts, addTransaction } from '../firestore';
+import { fetchAccounts, addTransaction, fetchTransactions, deleteTransaction } from '../firestore';
 import './Budget.css';
 
 const Budget = ({ currentUser }) => {
   const [accounts, setAccounts] = useState([]);
+  const [transactions, setTransactions] = useState([]);
   const [newTransaction, setNewTransaction] = useState({
     date: '',
     accountId: '',
@@ -22,10 +23,17 @@ const Budget = ({ currentUser }) => {
         setAccounts(data);
         if (data.length > 0) {
           setNewTransaction(prev => ({ ...prev, accountId: data[0].id }));
+          fetchTransactions(currentUser.uid, data[0].id).then(setTransactions);
         }
       });
     }
   }, [currentUser]);
+
+  useEffect(() => {
+    if (currentUser && currentUser.uid && newTransaction.accountId) {
+      fetchTransactions(currentUser.uid, newTransaction.accountId).then(setTransactions);
+    }
+  }, [currentUser, newTransaction.accountId]);
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -36,12 +44,10 @@ const Budget = ({ currentUser }) => {
   };
 
   const submitTransaction = () => {
-    if (!currentUser || !currentUser.uid) {
-      console.error("User not logged in.");
-      return;
-    }
+    if (!currentUser || !currentUser.uid) return;
     addTransaction(currentUser.uid, newTransaction.accountId, newTransaction)
       .then(() => {
+        fetchTransactions(currentUser.uid, newTransaction.accountId).then(setTransactions);
         setShowModal(false);
         setNewTransaction({
           date: '',
@@ -56,6 +62,17 @@ const Budget = ({ currentUser }) => {
       })
       .catch(error => {
         console.error("Error adding transaction:", error);
+      });
+  };
+
+  const handleDeleteTransaction = (transactionId, accountId) => {
+    if (!currentUser || !currentUser.uid) return;
+    deleteTransaction(currentUser.uid, accountId, transactionId)
+      .then(() => {
+        fetchTransactions(currentUser.uid, accountId).then(setTransactions);
+      })
+      .catch(error => {
+        console.error("Error deleting transaction:", error);
       });
   };
 
@@ -98,6 +115,24 @@ const Budget = ({ currentUser }) => {
           </div>
         </div>
       )}
+      <div className="transactions-list">
+        <h3>Transactions for Account: {newTransaction.accountId}</h3>
+        {transactions && transactions.length > 0 ? (
+          <ul>
+            {transactions.map((tx) => (
+              <li key={tx.id} className="transaction-item">
+                <span>{tx.date} - {tx.payee} - {tx.category}</span>
+                <span>Inflow: {tx.inflow} / Outflow: {tx.outflow}</span>
+                <button className="btn btn-delete" onClick={() => handleDeleteTransaction(tx.id, tx.accountId)}>
+                  Delete
+                </button>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p>No transactions found.</p>
+        )}
+      </div>
     </main>
   );
 };

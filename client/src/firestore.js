@@ -1,49 +1,52 @@
-import { collection, addDoc, getDocs } from "firebase/firestore";
-import { db } from './firebase';
+import { collection, getDocs, addDoc, deleteDoc, doc } from "firebase/firestore";
+import { db } from "./firebase";
 
 export const addAccount = async (userId, accountName, accountType, balance) => {
   try {
-    await addDoc(collection(db, `users/${userId}/accounts`), {
+    const docRef = await addDoc(collection(db, `users/${userId}/accounts`), {
       account_name: accountName,
       account_type: accountType,
       balance: balance,
     });
-  } catch (e) {
-    console.error("Error adding account: ", e);
+    return docRef.id;
+  } catch (error) {
+    console.error("Error adding account:", error);
+    throw error;
   }
 };
 
 export const fetchAccounts = async (userId) => {
   const querySnapshot = await getDocs(collection(db, `users/${userId}/accounts`));
-  const accounts = querySnapshot.docs.map((doc) => ({
+  return querySnapshot.docs.map((doc) => ({
     ...doc.data(),
     id: doc.id,
   }));
-  return accounts;
 };
 
-const addTransaction = async (userId, accountId, amount, date, description, type) => {
+export const addTransaction = async (userId, accountId, transactionData) => {
   try {
-    await addDoc(collection(db, `users/${userId}/accounts/${accountId}/transactions`), {
-      amount: amount,
-      transaction_date: date,
-      description: description,
-      transaction_type: type,
-    });
-  } catch (e) {
-    console.error("Error adding transaction: ", e);
+    const docRef = await addDoc(collection(db, `users/${userId}/accounts/${accountId}/transactions`), transactionData);
+    return docRef.id;
+  } catch (error) {
+    console.error("Error adding transaction:", error);
+    throw error;
   }
 };
 
-export { addTransaction };
-
-const fetchTransactions = async (userId, accountId) => {
+export const fetchTransactions = async (userId, accountId) => {
   const querySnapshot = await getDocs(collection(db, `users/${userId}/accounts/${accountId}/transactions`));
-  const transactions = querySnapshot.docs.map((doc) => ({
+  return querySnapshot.docs.map((doc) => ({
     ...doc.data(),
     id: doc.id,
+    accountId: accountId,
   }));
-  return transactions;
 };
 
-export { fetchTransactions };
+export const deleteTransaction = async (userId, accountId, transactionId) => {
+  try {
+    await deleteDoc(doc(db, `users/${userId}/accounts/${accountId}/transactions`, transactionId));
+  } catch (error) {
+    console.error("Error deleting transaction:", error);
+    throw error;
+  }
+};

@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-// import { db } from '../firebase';
-import { addAccount, fetchAccounts } from '../firestore';
+import { addAccount, fetchAccounts, deleteAccount } from '../firestore';
 import './Accounts.css';
 
 const Accounts = ({ currentUser }) => {
@@ -8,17 +7,11 @@ const Accounts = ({ currentUser }) => {
   const [newAccount, setNewAccount] = useState({ name: '', type: 'Checking', balance: '' });
   const [showModal, setShowModal] = useState(false);
 
-  // Line 17: Use useEffect to fetch accounts when the component mounts
   useEffect(() => {
-    if (currentUser) {
-      console.log("Current user:", currentUser);
-      if (currentUser.uid) {
-        fetchAccounts(currentUser.uid).then(setAccounts);
-      } else {
-        console.error("User is authenticated but UID is missing.");
-      }
-    } else {
-      console.error("User is not authenticated.");
+    if (currentUser && currentUser.uid) {
+      fetchAccounts(currentUser.uid).then((data) => {
+        setAccounts(data);
+      });
     }
   }, [currentUser]);
 
@@ -27,16 +20,37 @@ const Accounts = ({ currentUser }) => {
     setNewAccount({ ...newAccount, [name]: value });
   };
 
-  // Line 26: Update handleAddAccount function
   const handleAddAccount = () => {
     if (!currentUser || !currentUser.uid) {
       console.error('User not logged in or uid is missing.');
       return;
     }
-    addAccount(currentUser.uid, newAccount.name, newAccount.type, newAccount.balance);
-    setAccounts([...accounts, newAccount]);
-    setNewAccount({ name: '', type: 'Checking', balance: '' });
-    setShowModal(false);
+    addAccount(currentUser.uid, newAccount.name, newAccount.type, newAccount.balance)
+      .then((docId) => {
+        // Append the new account with its Firestore generated document ID
+        const updatedAccounts = [...accounts, { ...newAccount, id: docId }];
+        setAccounts(updatedAccounts);
+        setNewAccount({ name: '', type: 'Checking', balance: '' });
+        setShowModal(false);
+      })
+      .catch((error) => {
+        console.error("Error adding account:", error);
+      });
+  };
+
+  const handleDeleteAccount = (accountId) => {
+    if (!currentUser || !currentUser.uid) {
+      console.error('User not logged in or uid is missing.');
+      return;
+    }
+    deleteAccount(currentUser.uid, accountId)
+      .then(() => {
+        const updatedAccounts = accounts.filter(account => account.id !== accountId);
+        setAccounts(updatedAccounts);
+      })
+      .catch((error) => {
+        console.error("Error deleting account:", error);
+      });
   };
 
   const groupedAccounts = {
@@ -47,6 +61,7 @@ const Accounts = ({ currentUser }) => {
       Other: [],
     },
     Liabilities: {
+      Credit: [],
       Loans: [],
       Other: [],
     },
@@ -86,8 +101,9 @@ const Accounts = ({ currentUser }) => {
                 <option value="Checking">Checking</option>
                 <option value="Savings">Savings</option>
                 <option value="Investment">Investment</option>
-                <option value="Other">Other</option>
+                <option value="Credit">Credit</option>
                 <option value="Loans">Loans</option>
+                <option value="Other">Other</option>
               </select>
               <input
                 type="number"
@@ -116,6 +132,9 @@ const Accounts = ({ currentUser }) => {
                     <div key={index} className="account-item">
                       <span className="account-name">{account.account_name}</span>
                       <span className="account-balance">{account.balance}</span>
+                      <button className="btn btn-delete" onClick={() => handleDeleteAccount(account.id)}>
+                        Delete
+                      </button>
                     </div>
                   ))
                 ) : (
@@ -136,6 +155,9 @@ const Accounts = ({ currentUser }) => {
                     <div key={index} className="account-item">
                       <span className="account-name">{account.account_name}</span>
                       <span className="account-balance">{account.balance}</span>
+                      <button className="btn btn-delete" onClick={() => handleDeleteAccount(account.id)}>
+                        Delete
+                      </button>
                     </div>
                   ))
                 ) : (
