@@ -31,7 +31,7 @@ const Accounts = ({ currentUser }) => {
   useEffect(() => {
     if (currentUser && currentUser.uid) {
       fetchAccounts(currentUser.uid)
-        .then(data => {
+        .then((data) => {
           setAccounts(data);
           if (data.length > 0 && !newTransaction.accountId) {
             setNewTransaction(prev => ({ ...prev, accountId: data[0].id }));
@@ -39,7 +39,8 @@ const Accounts = ({ currentUser }) => {
         })
         .catch(err => console.error("Error fetching accounts:", err));
     }
-  }, [currentUser]);
+  }, [currentUser, newTransaction.accountId]);
+  
 
   const handleAccountInputChange = (e) => {
     const { name, value } = e.target;
