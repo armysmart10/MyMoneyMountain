@@ -1,103 +1,72 @@
 import React, { useState, useEffect } from 'react';
-import { PlaidLink } from 'react-plaid-link';
-import { exchangePublicToken } from '../plaid';
 import './Accounts.css';
 
-const Accounts = () => {
-  const [linkToken, setLinkToken] = useState(null);
-  const [assets, setAssets] = useState({
-    checking: [{ name: 'Bank of America', balance: '$2,500' }],
-    savings: [{ name: 'Ally Bank', balance: '$10,000' }],
-    investment: [{ name: 'Robinhood', balance: '$5,000' }],
-    other: [{ name: 'Cash', balance: '$500' }],
-  });
-
-  const [liabilities, setLiabilities] = useState({
-    debts: [{ name: 'Student Loan', balance: '$15,000' }],
-    other: [{ name: 'Credit Card', balance: '$2,000' }],
-  });
-
-  const onSuccess = (publicToken, metadata) => {
-    exchangePublicToken(publicToken).then((response) => {
-      console.log('Access token:', response.accessToken);
-    }).catch((error) => {
-      console.error('Error exchanging public token:', error);
-    });
-  };
+const Accounts = ({ currentUser }) => {
+  const [accounts, setAccounts] = useState([]);
+  const [newAccount, setNewAccount] = useState({ name: '', type: 'Checking', balance: '' });
 
   useEffect(() => {
-    // Use the link_token obtained from Postman
-    setLinkToken('your-link-token');
-  }, []);
+    // Load accounts from localStorage or server for the current user
+    const savedAccounts = JSON.parse(localStorage.getItem(currentUser.uid)) || [];
+    setAccounts(savedAccounts);
+  }, [currentUser]);
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setNewAccount({ ...newAccount, [name]: value });
+  };
+
+  const handleAddAccount = () => {
+    const updatedAccounts = [...accounts, newAccount];
+    setAccounts(updatedAccounts);
+    localStorage.setItem(currentUser.uid, JSON.stringify(updatedAccounts)); // Save accounts to localStorage or server
+    setNewAccount({ name: '', type: 'Checking', balance: '' }); // Reset form
+  };
 
   return (
     <main className="accounts-container">
       <div className="account-buttons">
-        {linkToken && (
-          <PlaidLink
-            token={linkToken}
-            onSuccess={onSuccess}
-          >
-            <button className="btn btn-primary">Link with Plaid</button>
-          </PlaidLink>
-        )}
-        <button className="btn btn-secondary">Add Manually</button>
+        <button className="btn btn-primary">Fake Plaid Link</button>
+        <button className="btn btn-secondary" onClick={handleAddAccount}>
+          Add Account Manually
+        </button>
       </div>
+
+      <form className="add-account-form">
+        <input
+          type="text"
+          name="name"
+          placeholder="Account Name"
+          value={newAccount.name}
+          onChange={handleInputChange}
+        />
+        <select name="type" value={newAccount.type} onChange={handleInputChange}>
+          <option value="Checking">Checking</option>
+          <option value="Savings">Savings</option>
+          <option value="Investment">Investment</option>
+          <option value="Other">Other</option>
+          <option value="Loans">Loans</option>
+        </select>
+        <input
+          type="number"
+          name="balance"
+          placeholder="Balance"
+          value={newAccount.balance}
+          onChange={handleInputChange}
+        />
+        <button type="button" onClick={handleAddAccount}>
+          Add Account
+        </button>
+      </form>
+
       <div className="accounts-columns">
-        <div className="accounts-column">
-          <h3>Assets</h3>
-          <div className="account-section">
-            <h4>Checking</h4>
-            <ul>
-              {assets.checking.map((account, index) => (
-                <li key={index}>{account.name}: {account.balance}</li>
-              ))}
-            </ul>
+        {accounts.map((account, index) => (
+          <div key={index} className="account-item">
+            <h4>{account.name}</h4>
+            <p>Type: {account.type}</p>
+            <p>Balance: {account.balance}</p>
           </div>
-          <div className="account-section">
-            <h4>Savings</h4>
-            <ul>
-              {assets.savings.map((account, index) => (
-                <li key={index}>{account.name}: {account.balance}</li>
-              ))}
-            </ul>
-          </div>
-          <div className="account-section">
-            <h4>Investment</h4>
-            <ul>
-              {assets.investment.map((account, index) => (
-                <li key={index}>{account.name}: {account.balance}</li>
-              ))}
-            </ul>
-          </div>
-          <div className="account-section">
-            <h4>Other</h4>
-            <ul>
-              {assets.other.map((account, index) => (
-                <li key={index}>{account.name}: {account.balance}</li>
-              ))}
-            </ul>
-          </div>
-        </div>
-        <div className="accounts-column">
-          <h3>Liabilities</h3>
-          <div className="account-section">
-            <h4>Debts</h4>
-            <ul>
-              {liabilities.debts.map((account, index) => (
-                <li key={index}>{account.name}: {account.balance}</li>
-              ))}
-            </ul>
-          </div>
-          <div className="account-section">
-            <h4>Other</h4>
-            <ul>
-              {liabilities.other.map((account, index) => (
-                <li key={index}>{account.name}: {account.balance}</li>
-              ))}
-            </ul>
-          </div>
-        </div>
+        ))}
       </div>
     </main>
   );

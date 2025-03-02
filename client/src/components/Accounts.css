@@ -10,31 +10,28 @@
   margin-bottom: 2rem;
 }
 
+.add-account-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.add-account-form input,
+.add-account-form select,
+.add-account-form button {
+  padding: 0.5rem;
+  font-size: 1rem;
+}
+
 .accounts-columns {
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: 1rem;
 }
 
-.accounts-column {
-  width: 48%;
-}
-
-.account-section {
-  margin-bottom: 1rem;
-}
-
-.account-section h4 {
-  margin-bottom: 0.5rem;
-}
-
-.account-section ul {
-  list-style: none;
-  padding-left: 0;
-}
-
-.account-section ul li {
+.account-item {
   background: #f7f7f7;
-  padding: 0.5rem;
-  margin-bottom: 0.5rem;
+  padding: 1rem;
   border: 1px solid #ddd;
 }
