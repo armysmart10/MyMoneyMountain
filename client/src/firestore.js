@@ -22,4 +22,28 @@ export const fetchAccounts = async (userId) => {
   return accounts;
 };
 
-// Add similar functions for adding and fetching transactions as needed
+const addTransaction = async (userId, accountId, amount, date, description, type) => {
+  try {
+    await addDoc(collection(db, `users/${userId}/accounts/${accountId}/transactions`), {
+      amount: amount,
+      transaction_date: date,
+      description: description,
+      transaction_type: type,
+    });
+  } catch (e) {
+    console.error("Error adding transaction: ", e);
+  }
+};
+
+export { addTransaction };
+
+const fetchTransactions = async (userId, accountId) => {
+  const querySnapshot = await getDocs(collection(db, `users/${userId}/accounts/${accountId}/transactions`));
+  const transactions = querySnapshot.docs.map((doc) => ({
+    ...doc.data(),
+    id: doc.id,
+  }));
+  return transactions;
+};
+
+export { fetchTransactions };
