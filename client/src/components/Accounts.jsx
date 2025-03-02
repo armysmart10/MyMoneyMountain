@@ -47,10 +47,7 @@ const Accounts = ({ currentUser }) => {
   };
 
   const handleAddAccount = () => {
-    if (!currentUser || !currentUser.uid) {
-      console.error('User not logged in or uid is missing.');
-      return;
-    }
+    if (!currentUser || !currentUser.uid) return;
     addAccount(currentUser.uid, newAccount.name, newAccount.type, newAccount.balance)
       .then(docId => {
         const updatedAccounts = [...accounts, { ...newAccount, id: docId }];
@@ -78,6 +75,16 @@ const Accounts = ({ currentUser }) => {
         setAccounts(updatedAccounts);
       })
       .catch(error => console.error("Error deleting account:", error));
+  };
+
+  const handleDeleteTransaction = (transactionId, accountId) => {
+    deleteTransaction(currentUser.uid, accountId, transactionId)
+      .then(() => {
+        fetchTransactions(currentUser.uid, accountId)
+          .then(data => setTransactions(data))
+          .catch(err => console.error("Error fetching transactions:", err));
+      })
+      .catch(error => console.error("Error deleting transaction:", error));
   };
 
   const handleTransactionInputChange = (e) => {
@@ -113,7 +120,6 @@ const Accounts = ({ currentUser }) => {
       .catch(err => console.error("Error adding transaction:", err));
   };
 
-  // Group accounts: Assets (Checking, Savings, Investment, Other) and Liabilities (Loans, Other)
   const groupedAssets = {
     Checking: accounts.filter(acc => acc.account_type === 'Checking'),
     Savings: accounts.filter(acc => acc.account_type === 'Savings'),
@@ -130,8 +136,12 @@ const Accounts = ({ currentUser }) => {
       <h2>Accounts</h2>
       <div className="account-buttons">
         <button className="btn btn-primary">Fake Plaid Link</button>
-        <button className="btn btn-secondary" onClick={() => setShowAccountModal(true)}>Add Account Manually</button>
-        <button className="btn btn-secondary" onClick={() => setShowTransactionModal(true)}>Add Transaction</button>
+        <button className="btn btn-secondary" onClick={() => setShowAccountModal(true)}>
+          Add Account Manually
+        </button>
+        <button className="btn btn-secondary" onClick={() => setShowTransactionModal(true)}>
+          Add Transaction
+        </button>
       </div>
 
       {showAccountModal && (
@@ -242,7 +252,10 @@ const Accounts = ({ currentUser }) => {
                 {groupedAssets[type].length > 0 ? (
                   groupedAssets[type].map(account => (
                     <div key={account.id} className="account-item">
-                      <span className="account-name" style={{ cursor: "pointer" }} onClick={() => openTransactionsModal(account)}>
+                      <span 
+                        className="account-name" 
+                        style={{ cursor: "pointer" }} 
+                        onClick={() => openTransactionsModal(account)}>
                         {account.account_name}
                       </span>
                       <span className="account-balance">{account.balance}</span>
@@ -267,7 +280,10 @@ const Accounts = ({ currentUser }) => {
                 {groupedLiabilities[type].length > 0 ? (
                   groupedLiabilities[type].map(account => (
                     <div key={account.id} className="account-item">
-                      <span className="account-name" style={{ cursor: "pointer" }} onClick={() => openTransactionsModal(account)}>
+                      <span 
+                        className="account-name" 
+                        style={{ cursor: "pointer" }} 
+                        onClick={() => openTransactionsModal(account)}>
                         {account.account_name}
                       </span>
                       <span className="account-balance">{account.balance}</span>
