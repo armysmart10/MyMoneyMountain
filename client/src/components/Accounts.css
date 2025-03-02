@@ -24,34 +24,35 @@
   font-size: 1rem;
 }
 
-.accounts-columns {
+.accounts-sections {
   display: flex;
-  flex-wrap: wrap;
+  justify-content: space-between;
   gap: 2rem;
 }
 
-.accounts-section {
-  width: 100%;
+.accounts-column {
+  width: 48%;
 }
 
-.accounts-column {
-  width: 45%;
+.accounts-group {
+  margin-bottom: 2rem;
 }
 
 .account-item {
   display: flex;
   justify-content: space-between;
   background: #f7f7f7;
-  padding: 1rem;
+  padding: 0.5rem;
   border: 1px solid #ddd;
+  margin-bottom: 0.5rem;
 }
 
 .account-name {
-  font-weight: bold;
+  text-align: left;
 }
 
 .account-balance {
-  color: #333;
+  text-align: right;
 }
 
 /* Modal Styles */

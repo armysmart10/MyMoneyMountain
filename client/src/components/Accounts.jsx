@@ -95,11 +95,11 @@ const Accounts = ({ currentUser }) => {
         </div>
       )}
 
-      <div className="accounts-columns">
-        <div className="accounts-section">
+      <div className="accounts-sections">
+        <div className="accounts-column">
           <h2>Assets</h2>
           {Object.keys(groupedAccounts.Assets).map((type) => (
-            <div key={type} className="accounts-column">
+            <div key={type} className="accounts-group">
               <h3>{type}</h3>
               <div className="account-section">
                 {groupedAccounts.Assets[type].length > 0 ? (
@@ -116,10 +116,10 @@ const Accounts = ({ currentUser }) => {
             </div>
           ))}
         </div>
-        <div className="accounts-section">
+        <div className="accounts-column">
           <h2>Liabilities</h2>
           {Object.keys(groupedAccounts.Liabilities).map((type) => (
-            <div key={type} className="accounts-column">
+            <div key={type} className="accounts-group">
               <h3>{type}</h3>
               <div className="account-section">
                 {groupedAccounts.Liabilities[type].length > 0 ? (
