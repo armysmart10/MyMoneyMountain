@@ -1,42 +1,40 @@
-/* Accounts.css */
 .accounts-container {
-    display: flex;
-    flex-direction: column;
-    padding: 2rem;
-  }
-  
-  .account-buttons {
-    display: flex;
-    gap: 1rem;
-    margin-bottom: 2rem;
-  }
-  
-  .accounts-columns {
-    display: flex;
-    justify-content: space-between;
-  }
-  
-  .accounts-column {
-    width: 48%;
-  }
-  
-  .account-section {
-    margin-bottom: 1rem;
-  }
-  
-  .account-section h4 {
-    margin-bottom: 0.5rem;
-  }
-  
-  .account-section ul {
-    list-style: none;
-    padding-left: 0;
-  }
-  
-  .account-section ul li {
-    background: #f7f7f7;
-    padding: 0.5rem;
-    margin-bottom: 0.5rem;
-    border: 1px solid #ddd;
-  }
-  
+  display: flex;
+  flex-direction: column;
+  padding: 2rem;
+}
+
+.account-buttons {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.accounts-columns {
+  display: flex;
+  justify-content: space-between;
+}
+
+.accounts-column {
+  width: 48%;
+}
+
+.account-section {
+  margin-bottom: 1rem;
+}
+
+.account-section h4 {
+  margin-bottom: 0.5rem;
+}
+
+.account-section ul {
+  list-style: none;
+  padding-left: 0;
+}
+
+.account-section ul li {
+  background: #f7f7f7;
+  padding: 0.5rem;
+  margin-bottom: 0.5rem;
+  border: 1px solid #ddd;
+}
