@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { PlaidLink } from 'react-plaid-link';
-import { exchangePublicToken } from '../plaid'; // Function to exchange public token
+import { exchangePublicToken } from '../plaid';
 import './Accounts.css';
 
 const Accounts = () => {
@@ -26,17 +26,8 @@ const Accounts = () => {
   };
 
   useEffect(() => {
-    const createLinkToken = async () => {
-      try {
-        const response = await fetch('/api/create_link_token', { method: 'POST' });
-        const data = await response.json();
-        setLinkToken(data.link_token);
-      } catch (error) {
-        console.error('Error creating link token:', error);
-      }
-    };
-
-    createLinkToken();
+    // Use the link_token obtained from Postman
+    setLinkToken('your-link-token');
   }, []);
 
   return (
