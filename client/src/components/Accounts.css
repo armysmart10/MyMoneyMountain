@@ -26,14 +26,32 @@
 
 .accounts-columns {
   display: flex;
-  flex-direction: column;
-  gap: 1rem;
+  flex-wrap: wrap;
+  gap: 2rem;
+}
+
+.accounts-section {
+  width: 100%;
+}
+
+.accounts-column {
+  width: 45%;
 }
 
 .account-item {
+  display: flex;
+  justify-content: space-between;
   background: #f7f7f7;
   padding: 1rem;
   border: 1px solid #ddd;
+}
+
+.account-name {
+  font-weight: bold;
+}
+
+.account-balance {
+  color: #333;
 }
 
 /* Modal Styles */

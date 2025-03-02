@@ -30,6 +30,27 @@ const Accounts = ({ currentUser }) => {
     setShowModal(false);
   };
 
+  const groupedAccounts = {
+    Assets: {
+      Checking: [],
+      Savings: [],
+      Investment: [],
+      Other: [],
+    },
+    Liabilities: {
+      Loans: [],
+      Other: [],
+    },
+  };
+
+  accounts.forEach((account) => {
+    if (groupedAccounts.Assets[account.type]) {
+      groupedAccounts.Assets[account.type].push(account);
+    } else if (groupedAccounts.Liabilities[account.type]) {
+      groupedAccounts.Liabilities[account.type].push(account);
+    }
+  });
+
   return (
     <main className="accounts-container">
       <div className="account-buttons">
@@ -75,13 +96,46 @@ const Accounts = ({ currentUser }) => {
       )}
 
       <div className="accounts-columns">
-        {accounts.map((account, index) => (
-          <div key={index} className="account-item">
-            <h4>{account.name}</h4>
-            <p>Type: {account.type}</p>
-            <p>Balance: {account.balance}</p>
-          </div>
-        ))}
+        <div className="accounts-section">
+          <h2>Assets</h2>
+          {Object.keys(groupedAccounts.Assets).map((type) => (
+            <div key={type} className="accounts-column">
+              <h3>{type}</h3>
+              <div className="account-section">
+                {groupedAccounts.Assets[type].length > 0 ? (
+                  groupedAccounts.Assets[type].map((account, index) => (
+                    <div key={index} className="account-item">
+                      <span className="account-name">{account.name}</span>
+                      <span className="account-balance">{account.balance}</span>
+                    </div>
+                  ))
+                ) : (
+                  <p>No {type} accounts.</p>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+        <div className="accounts-section">
+          <h2>Liabilities</h2>
+          {Object.keys(groupedAccounts.Liabilities).map((type) => (
+            <div key={type} className="accounts-column">
+              <h3>{type}</h3>
+              <div className="account-section">
+                {groupedAccounts.Liabilities[type].length > 0 ? (
+                  groupedAccounts.Liabilities[type].map((account, index) => (
+                    <div key={index} className="account-item">
+                      <span className="account-name">{account.name}</span>
+                      <span className="account-balance">{account.balance}</span>
+                    </div>
+                  ))
+                ) : (
+                  <p>No {type} accounts.</p>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </main>
   );
