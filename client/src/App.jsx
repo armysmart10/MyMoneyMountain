@@ -11,7 +11,7 @@ import Register from './components/Register';
 import Login from './components/Login';
 import Dashboard from './components/Dashboard';
 import Accounts from './components/Accounts';
-import Budget from './components/Budget';
+// import Budget from './components/Budget';
 import './App.css';
 
 const App = () => {
