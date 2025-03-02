@@ -1,55 +1,72 @@
 import React, { useState, useEffect } from 'react';
-import { fetchAccounts, deleteAccount, fetchTransactions } from '../firestore';
+import { fetchAccounts, deleteAccount, fetchTransactions, deleteTransaction, addAccount } from '../firestore';
 import './Accounts.css';
 
 const Accounts = ({ currentUser }) => {
   const [accounts, setAccounts] = useState([]);
+  const [newAccount, setNewAccount] = useState({ name: '', type: 'Checking', balance: '' });
   const [showAccountModal, setShowAccountModal] = useState(false);
-  
-  // State and modal to show transactions for a selected account
   const [showTransactionsModal, setShowTransactionsModal] = useState(false);
   const [selectedAccount, setSelectedAccount] = useState(null);
   const [transactions, setTransactions] = useState([]);
 
-  // Fetch accounts from Firestore when currentUser changes
   useEffect(() => {
     if (currentUser && currentUser.uid) {
-      fetchAccounts(currentUser.uid).then(data => {
-        setAccounts(data);
-      }).catch(err => console.error("Error fetching accounts:", err));
+      fetchAccounts(currentUser.uid)
+        .then(data => setAccounts(data))
+        .catch(err => console.error("Error fetching accounts:", err));
     }
   }, [currentUser]);
 
-  const handleDeleteAccount = (accountId) => {
+  const handleAccountInputChange = (e) => {
+    const { name, value } = e.target;
+    setNewAccount({ ...newAccount, [name]: value });
+  };
+
+  const handleAddAccount = () => {
     if (!currentUser || !currentUser.uid) {
-      console.error("User not authenticated");
+      console.error('User not logged in or uid is missing.');
       return;
     }
+    addAccount(currentUser.uid, newAccount.name, newAccount.type, newAccount.balance)
+      .then(docId => {
+        const updatedAccounts = [...accounts, { ...newAccount, id: docId }];
+        setAccounts(updatedAccounts);
+        setNewAccount({ name: '', type: 'Checking', balance: '' });
+        setShowAccountModal(false);
+      })
+      .catch(error => console.error("Error adding account:", error));
+  };
+
+  const openTransactionsModal = (account) => {
+    setSelectedAccount(account);
+    fetchTransactions(currentUser.uid, account.id)
+      .then(data => {
+        setTransactions(data);
+        setShowTransactionsModal(true);
+      })
+      .catch(err => console.error("Error fetching transactions:", err));
+  };
+
+  const handleDeleteTransaction = (transactionId, accountId) => {
+    deleteTransaction(currentUser.uid, accountId, transactionId)
+      .then(() => {
+        fetchTransactions(currentUser.uid, accountId)
+          .then(data => setTransactions(data))
+          .catch(err => console.error("Error fetching transactions:", err));
+      })
+      .catch(error => console.error("Error deleting transaction:", error));
+  };
+
+  const handleDeleteAccount = (accountId) => {
     deleteAccount(currentUser.uid, accountId)
       .then(() => {
-        const updated = accounts.filter(acc => acc.id !== accountId);
-        setAccounts(updated);
+        const updatedAccounts = accounts.filter(acc => acc.id !== accountId);
+        setAccounts(updatedAccounts);
       })
       .catch(error => console.error("Error deleting account:", error));
   };
 
-  // Called when a user clicks on an account's name.
-  const openTransactionsModal = (account) => {
-    setSelectedAccount(account);
-    if (currentUser && currentUser.uid && account.id) {
-      fetchTransactions(currentUser.uid, account.id)
-        .then(data => {
-          setTransactions(data);
-          setShowTransactionsModal(true);
-        })
-        .catch(error => console.error("Error fetching transactions:", error));
-    }
-  };
-
-  // Group accounts into two sets: Assets and Liabilities.  
-  // For this example, assume:
-  //   • Assets: accounts with types Checking, Savings, Investment, Other
-  //   • Liabilities: accounts with type Loans
   const groupedAssets = {
     Checking: accounts.filter(acc => acc.account_type === 'Checking'),
     Savings: accounts.filter(acc => acc.account_type === 'Savings'),
@@ -58,7 +75,7 @@ const Accounts = ({ currentUser }) => {
   };
   const groupedLiabilities = {
     Loans: accounts.filter(acc => acc.account_type === 'Loans'),
-    // you can add more liability groups here if needed
+    Other: accounts.filter(acc => acc.account_type === 'Other'),
   };
 
   return (
@@ -71,71 +88,26 @@ const Accounts = ({ currentUser }) => {
         </button>
       </div>
 
-      {/* The modal for adding accounts is omitted for brevity since you're focusing on transactions,
-          but you could add similar modal code here if needed. */}
-      
-      <div className="accounts-sections">
-        <div className="accounts-column">
-          <h2>Assets</h2>
-          {Object.keys(groupedAssets).map(type => (
-            <div key={type} className="accounts-group">
-              <h3>{type}</h3>
-              <div className="account-section">
-                {groupedAssets[type].length > 0 ? (
-                  groupedAssets[type].map(account => (
-                    <div key={account.id} className="account-item">
-                      <span 
-                        className="account-name" 
-                        style={{cursor: 'pointer'}} 
-                        onClick={() => openTransactionsModal(account)}>
-                        {account.account_name}
-                      </span>
-                      <span className="account-balance">{account.balance}</span>
-                      <button 
-                        className="btn btn-delete" 
-                        onClick={() => handleDeleteAccount(account.id)}>
-                        Delete
-                      </button>
-                    </div>
-                  ))
-                ) : (
-                  <p>No {type} accounts.</p>
-                )}
-              </div>
-            </div>
-          ))}
+      {showAccountModal && (
+        <div className="modal">
+          <div className="modal-content">
+            <span className="close" onClick={() => setShowAccountModal(false)}>&times;</span>
+            <h2>Add Account</h2>
+            <form className="add-account-form">
+              <input type="text" name="name" placeholder="Account Name" value={newAccount.name} onChange={handleAccountInputChange} />
+              <select name="type" value={newAccount.type} onChange={handleAccountInputChange}>
+                <option value="Checking">Checking</option>
+                <option value="Savings">Savings</option>
+                <option value="Investment">Investment</option>
+                <option value="Other">Other</option>
+                <option value="Loans">Loans</option>
+              </select>
+              <input type="number" name="balance" placeholder="Balance" value={newAccount.balance} onChange={handleAccountInputChange} />
+              <button type="button" onClick={handleAddAccount}>Add Account</button>
+            </form>
+          </div>
         </div>
-        <div className="accounts-column">
-          <h2>Liabilities</h2>
-          {Object.keys(groupedLiabilities).map(type => (
-            <div key={type} className="accounts-group">
-              <h3>{type}</h3>
-              <div className="account-section">
-                {groupedLiabilities[type].length > 0 ? (
-                  groupedLiabilities[type].map(account => (
-                    <div key={account.id} className="account-item">
-                      <span 
-                        className="account-name" 
-                        style={{cursor: 'pointer'}} 
-                        onClick={() => openTransactionsModal(account)}>
-                        {account.account_name}
-                      </span>
-                      <span className="account-balance">{account.balance}</span>
-                      <button 
-                        className="btn btn-delete" 
-                        onClick={() => handleDeleteAccount(account.id)}>
-                        Delete
-                      </button>
-                    </div>
-                  ))
-                ) : (
-                  <p>No {type} accounts.</p>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
+      )}
 
       {showTransactionsModal && selectedAccount && (
         <div className="modal">
@@ -167,11 +139,7 @@ const Accounts = ({ currentUser }) => {
                       <td>{tx.outflow}</td>
                       <td>{tx.cleared ? "Yes" : "No"}</td>
                       <td>
-                        <button 
-                          className="btn btn-delete" 
-                          onClick={() => handleDeleteTransaction(tx.id, selectedAccount.id)}>
-                          Delete
-                        </button>
+                        <button className="btn btn-delete" onClick={() => handleDeleteTransaction(tx.id, selectedAccount.id)}>Delete</button>
                       </td>
                     </tr>
                   ))}
@@ -183,6 +151,55 @@ const Accounts = ({ currentUser }) => {
           </div>
         </div>
       )}
+
+      <div className="accounts-sections">
+        <div className="accounts-column">
+          <h2>Assets</h2>
+          {Object.keys(groupedAssets).map(type => (
+            <div key={type} className="accounts-group">
+              <h3>{type}</h3>
+              <div className="account-section">
+                {groupedAssets[type].length > 0 ? (
+                  groupedAssets[type].map(account => (
+                    <div key={account.id} className="account-item">
+                      <span className="account-name" onClick={() => setShowTransactionsModal(true) || openTransactionsModal(account)} style={{ cursor: "pointer" }}>
+                        {account.account_name}
+                      </span>
+                      <span className="account-balance">{account.balance}</span>
+                      <button className="btn btn-delete" onClick={() => handleDeleteAccount(account.id)}>Delete</button>
+                    </div>
+                  ))
+                ) : (
+                  <p>No {type} accounts.</p>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+        <div className="accounts-column">
+          <h2>Liabilities</h2>
+          {Object.keys(groupedLiabilities).map(type => (
+            <div key={type} className="accounts-group">
+              <h3>{type}</h3>
+              <div className="account-section">
+                {groupedLiabilities[type].length > 0 ? (
+                  groupedLiabilities[type].map(account => (
+                    <div key={account.id} className="account-item">
+                      <span className="account-name" onClick={() => setShowTransactionsModal(true) || openTransactionsModal(account)} style={{ cursor: "pointer" }}>
+                        {account.account_name}
+                      </span>
+                      <span className="account-balance">{account.balance}</span>
+                      <button className="btn btn-delete" onClick={() => handleDeleteAccount(account.id)}>Delete</button>
+                    </div>
+                  ))
+                ) : (
+                  <p>No {type} accounts.</p>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
     </main>
   );
 };
