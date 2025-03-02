@@ -13,7 +13,7 @@ const Navbar = ({ currentUser }) => {
           <li><Link to="/accounts">Accounts</Link></li>
           <li><Link to="/investments">Investments</Link></li>
           <li><Link to="/planning">Planning</Link></li>
-          <li><Link to="/support">Support</Link></li>
+          <li><Link to="/budget">Budget</Link></li>
         </ul>
         <div className="nav-action">
           {currentUser ? (

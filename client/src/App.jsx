@@ -11,6 +11,7 @@ import Register from './components/Register';
 import Login from './components/Login';
 import Dashboard from './components/Dashboard';
 import Accounts from './components/Accounts';
+import Budget from './components/Budget';
 import './App.css';
 
 const App = () => {
@@ -32,6 +33,7 @@ const App = () => {
           <Route path="/register" element={currentUser ? <Navigate to="/" /> : <Register />} />
           <Route path="/login" element={currentUser ? <Navigate to="/" /> : <Login />} />
           <Route path="/accounts" element={currentUser ? <Accounts currentUser={currentUser} /> : <Navigate to="/login" />} />
+          <Route path="/budget" element={currentUser ? <Budget currentUser={currentUser} /> : <Navigate to="/login" />} />
         </Routes>
         <Footer />
       </div>
