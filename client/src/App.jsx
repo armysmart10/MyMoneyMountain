@@ -10,7 +10,7 @@ import Footer from './components/Footer';
 import Register from './components/Register';
 import Login from './components/Login';
 import Dashboard from './components/Dashboard';
-import Accounts from './components/Accounts'; // Import Accounts component
+import Accounts from './components/Accounts';
 import './App.css';
 
 const App = () => {
@@ -31,7 +31,7 @@ const App = () => {
           <Route path="/" element={currentUser ? <Dashboard /> : <Home />} />
           <Route path="/register" element={currentUser ? <Navigate to="/" /> : <Register />} />
           <Route path="/login" element={currentUser ? <Navigate to="/" /> : <Login />} />
-          <Route path="/accounts" element={currentUser ? <Accounts /> : <Navigate to="/login" />} /> {/* Add route for Accounts */}
+          <Route path="/accounts" element={currentUser ? <Accounts currentUser={currentUser} /> : <Navigate to="/login" />} />
         </Routes>
         <Footer />
       </div>

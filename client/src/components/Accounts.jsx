@@ -6,9 +6,11 @@ const Accounts = ({ currentUser }) => {
   const [newAccount, setNewAccount] = useState({ name: '', type: 'Checking', balance: '' });
 
   useEffect(() => {
-    // Load accounts from localStorage or server for the current user
-    const savedAccounts = JSON.parse(localStorage.getItem(currentUser.uid)) || [];
-    setAccounts(savedAccounts);
+    if (currentUser && currentUser.uid) {
+      // Load accounts from localStorage or server for the current user
+      const savedAccounts = JSON.parse(localStorage.getItem(currentUser.uid)) || [];
+      setAccounts(savedAccounts);
+    }
   }, [currentUser]);
 
   const handleInputChange = (e) => {
@@ -17,6 +19,10 @@ const Accounts = ({ currentUser }) => {
   };
 
   const handleAddAccount = () => {
+    if (!currentUser || !currentUser.uid) {
+      console.error('User not logged in.');
+      return;
+    }
     const updatedAccounts = [...accounts, newAccount];
     setAccounts(updatedAccounts);
     localStorage.setItem(currentUser.uid, JSON.stringify(updatedAccounts)); // Save accounts to localStorage or server
