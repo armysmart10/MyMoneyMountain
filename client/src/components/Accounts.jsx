@@ -10,8 +10,15 @@ const Accounts = ({ currentUser }) => {
 
   // Line 17: Use useEffect to fetch accounts when the component mounts
   useEffect(() => {
-    if (currentUser && currentUser.uid) {
-      fetchAccounts(currentUser.uid).then(setAccounts);
+    if (currentUser) {
+      console.log("Current user:", currentUser);
+      if (currentUser.uid) {
+        fetchAccounts(currentUser.uid).then(setAccounts);
+      } else {
+        console.error("User is authenticated but UID is missing.");
+      }
+    } else {
+      console.error("User is not authenticated.");
     }
   }, [currentUser]);
 
