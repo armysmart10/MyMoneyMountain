@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { addAccount, fetchAccounts } from '../firestore'
 import './Accounts.css';
 
 const Accounts = ({ currentUser }) => {
@@ -8,8 +9,7 @@ const Accounts = ({ currentUser }) => {
 
   useEffect(() => {
     if (currentUser && currentUser.uid) {
-      const savedAccounts = JSON.parse(localStorage.getItem(currentUser.uid)) || [];
-      setAccounts(savedAccounts);
+      fetchAccounts(currentUser.uid).then(setAccounts);
     }
   }, [currentUser]);
 
@@ -23,12 +23,12 @@ const Accounts = ({ currentUser }) => {
       console.error('User not logged in or uid is missing.');
       return;
     }
-    const updatedAccounts = [...accounts, newAccount];
-    setAccounts(updatedAccounts);
-    localStorage.setItem(currentUser.uid, JSON.stringify(updatedAccounts));
+    addAccount(currentUser.uid, newAccount.name, newAccount.type, newAccount.balance);
+    setAccounts([...accounts, newAccount]);
     setNewAccount({ name: '', type: 'Checking', balance: '' });
     setShowModal(false);
   };
+  
 
   const groupedAccounts = {
     Assets: {
@@ -42,14 +42,15 @@ const Accounts = ({ currentUser }) => {
       Other: [],
     },
   };
-
+  
   accounts.forEach((account) => {
-    if (groupedAccounts.Assets[account.type]) {
-      groupedAccounts.Assets[account.type].push(account);
-    } else if (groupedAccounts.Liabilities[account.type]) {
-      groupedAccounts.Liabilities[account.type].push(account);
+    if (groupedAccounts.Assets[account.account_type]) {
+      groupedAccounts.Assets[account.account_type].push(account);
+    } else if (groupedAccounts.Liabilities[account.account_type]) {
+      groupedAccounts.Liabilities[account.account_type].push(account);
     }
   });
+  
 
   return (
     <main className="accounts-container">
@@ -95,48 +96,48 @@ const Accounts = ({ currentUser }) => {
         </div>
       )}
 
-      <div className="accounts-sections">
-        <div className="accounts-column">
-          <h2>Assets</h2>
-          {Object.keys(groupedAccounts.Assets).map((type) => (
-            <div key={type} className="accounts-group">
-              <h3>{type}</h3>
-              <div className="account-section">
-                {groupedAccounts.Assets[type].length > 0 ? (
-                  groupedAccounts.Assets[type].map((account, index) => (
-                    <div key={index} className="account-item">
-                      <span className="account-name">{account.name}</span>
-                      <span className="account-balance">{account.balance}</span>
-                    </div>
-                  ))
-                ) : (
-                  <p>No {type} accounts.</p>
-                )}
-              </div>
+    <div className="accounts-sections">
+    <div className="accounts-column">
+        <h2>Assets</h2>
+        {Object.keys(groupedAccounts.Assets).map((type) => (
+        <div key={type} className="accounts-group">
+            <h3>{type}</h3>
+            <div className="account-section">
+            {groupedAccounts.Assets[type].length > 0 ? (
+                groupedAccounts.Assets[type].map((account, index) => (
+                <div key={index} className="account-item">
+                    <span className="account-name">{account.account_name}</span>
+                    <span className="account-balance">{account.balance}</span>
+                </div>
+                ))
+            ) : (
+                <p>No {type} accounts.</p>
+            )}
             </div>
-          ))}
         </div>
-        <div className="accounts-column">
-          <h2>Liabilities</h2>
-          {Object.keys(groupedAccounts.Liabilities).map((type) => (
-            <div key={type} className="accounts-group">
-              <h3>{type}</h3>
-              <div className="account-section">
-                {groupedAccounts.Liabilities[type].length > 0 ? (
-                  groupedAccounts.Liabilities[type].map((account, index) => (
-                    <div key={index} className="account-item">
-                      <span className="account-name">{account.name}</span>
-                      <span className="account-balance">{account.balance}</span>
-                    </div>
-                  ))
-                ) : (
-                  <p>No {type} accounts.</p>
-                )}
-              </div>
+        ))}
+    </div>
+    <div className="accounts-column">
+        <h2>Liabilities</h2>
+        {Object.keys(groupedAccounts.Liabilities).map((type) => (
+        <div key={type} className="accounts-group">
+            <h3>{type}</h3>
+            <div className="account-section">
+            {groupedAccounts.Liabilities[type].length > 0 ? (
+                groupedAccounts.Liabilities[type].map((account, index) => (
+                <div key={index} className="account-item">
+                    <span className="account-name">{account.account_name}</span>
+                    <span className="account-balance">{account.balance}</span>
+                </div>
+                ))
+            ) : (
+                <p>No {type} accounts.</p>
+            )}
             </div>
-          ))}
         </div>
-      </div>
+        ))}
+    </div>
+    </div>
     </main>
   );
 };
