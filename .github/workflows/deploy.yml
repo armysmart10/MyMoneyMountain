@@ -30,4 +30,3 @@ jobs:
         firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
         projectId: personal-finance-website-30226
         channelId: live
-        projectPath: client
