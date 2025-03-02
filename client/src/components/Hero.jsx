@@ -4,13 +4,10 @@ import './Hero.css';
 const Hero = () => {
   return (
     <section className="hero">
-      <div className="container">
-        <h1>Take Control of Your Financial Future</h1>
-        <p>
-          Track your net worth, monitor investments, and plan for retirement with ease.
-        </p>
-        <a href="#" className="btn btn-primary hero-btn">Get Started</a>
-      </div>
+      <h1>Welcome to FinanceHub</h1>
+      <p>Manage your finances seamlessly and efficiently.</p>
+      {/* Use a valid URL for the href attribute */}
+      <a href="/register" className="btn btn-primary">Get Started</a>
     </section>
   );
 };
