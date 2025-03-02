@@ -1,16 +1,34 @@
 const express = require('express');
-const cors = require('cors');
 const bodyParser = require('body-parser');
+const plaid = require('plaid');
+
 const app = express();
-const port = 3000;
+app.use(bodyParser.json());
 
-app.use(cors());
-app.use(bodyParser.json())
-
-app.get('/', (req, res) => {
-  res.send('Hello, World!');
+const plaidClient = new plaid.Client({
+  clientID: 'your-client-id',
+  secret: 'your-secret',
+  env: plaid.environments.sandbox, // Use the appropriate environment
 });
 
-app.listen(port, () => {
-  console.log(`Server is running on http://localhost:${port}`);
+app.post('/api/create_link_token', async (req, res) => {
+  try {
+    const linkTokenResponse = await plaidClient.linkTokenCreate({
+      user: {
+        client_user_id: 'user-id',
+      },
+      client_name: 'Your App Name',
+      products: ['auth', 'transactions'],
+      country_codes: ['US'],
+      language: 'en',
+    });
+    res.json(linkTokenResponse);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+const PORT = process.env.PORT || 3001;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });

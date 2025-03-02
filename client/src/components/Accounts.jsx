@@ -1,19 +1,20 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { PlaidLink } from 'react-plaid-link';
 import { exchangePublicToken } from '../plaid'; // Function to exchange public token
-import './Accounts.css'; // Ensure the CSS file exists
+import './Accounts.css';
 
 const Accounts = () => {
+  const [linkToken, setLinkToken] = useState(null);
   const [assets, setAssets] = useState({
     checking: [{ name: 'Bank of America', balance: '$2,500' }],
     savings: [{ name: 'Ally Bank', balance: '$10,000' }],
     investment: [{ name: 'Robinhood', balance: '$5,000' }],
-    other: [{ name: 'Cash', balance: '$500' }]
+    other: [{ name: 'Cash', balance: '$500' }],
   });
 
   const [liabilities, setLiabilities] = useState({
     debts: [{ name: 'Student Loan', balance: '$15,000' }],
-    other: [{ name: 'Credit Card', balance: '$2,000' }]
+    other: [{ name: 'Credit Card', balance: '$2,000' }],
   });
 
   const onSuccess = (publicToken, metadata) => {
@@ -25,21 +26,30 @@ const Accounts = () => {
   };
 
   useEffect(() => {
-    console.log("Accounts component mounted");
+    const createLinkToken = async () => {
+      try {
+        const response = await fetch('/api/create_link_token', { method: 'POST' });
+        const data = await response.json();
+        setLinkToken(data.link_token);
+      } catch (error) {
+        console.error('Error creating link token:', error);
+      }
+    };
+
+    createLinkToken();
   }, []);
 
   return (
     <main className="accounts-container">
       <div className="account-buttons">
-        <PlaidLink
-          clientName="Your App Name"
-          env="sandbox"
-          product={["auth", "transactions"]}
-          publicKey="your-public-key"  // Replace with your actual Plaid public key
-          onSuccess={onSuccess}
-        >
-          <button className="btn btn-primary">Link with Plaid</button>
-        </PlaidLink>
+        {linkToken && (
+          <PlaidLink
+            token={linkToken}
+            onSuccess={onSuccess}
+          >
+            <button className="btn btn-primary">Link with Plaid</button>
+          </PlaidLink>
+        )}
         <button className="btn btn-secondary">Add Manually</button>
       </div>
       <div className="accounts-columns">
