@@ -1,4 +1,3 @@
-// client/src/firestore.js
 import { 
   collection, 
   getDocs, 
@@ -29,7 +28,7 @@ export const fetchAccounts = async (userId) => {
   const querySnapshot = await getDocs(collection(db, `users/${userId}/accounts`));
   return querySnapshot.docs.map((doc) => ({
     ...doc.data(),
-    id: doc.id
+    id: doc.id,
   }));
 };
 
@@ -42,12 +41,22 @@ export const deleteAccount = async (userId, accountId) => {
   }
 };
 
+export const addTransaction = async (userId, accountId, transactionData) => {
+  try {
+    const docRef = await addDoc(collection(db, `users/${userId}/accounts/${accountId}/transactions`), transactionData);
+    return docRef.id;
+  } catch (error) {
+    console.error("Error adding transaction:", error);
+    throw error;
+  }
+};
+
 export const fetchTransactions = async (userId, accountId) => {
   const querySnapshot = await getDocs(collection(db, `users/${userId}/accounts/${accountId}/transactions`));
   return querySnapshot.docs.map((doc) => ({
     ...doc.data(),
     id: doc.id,
-    accountId: accountId
+    accountId: accountId,
   }));
 };
 
