@@ -21,7 +21,7 @@ const Dashboard = ({ currentUser }) => {
           data.forEach((account) => {
             const bal = parseFloat(account.balance) || 0;
             // Assume "Loans" accounts are liabilities; all others are assets.
-            if (account.account_type === 'Loans') {
+            if (account.account_type === 'Liabilities') {
               totalLiabilities += bal;
             } else {
               totalAssets += bal;
