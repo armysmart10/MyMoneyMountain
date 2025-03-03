@@ -1,47 +1,89 @@
-const functions = require('firebase-functions');
-const express = require('express');
-const cors = require('cors');
-const { Configuration, PlaidApi, PlaidEnvironments } = require('plaid');
+const { onSchedule } = require('firebase-functions/v2/scheduler');
+const admin = require('firebase-admin');
+admin.initializeApp();
+const db = admin.firestore();
 
+exports.dailyNetWorthSnapshot = onSchedule("0 0 * * *", {
+  timeZone: "America/Los_Angeles",
+  region: "us-central1"
+}, async (event) => {
+  try {
+    const usersSnapshot = await db.collection("users").get();
+    const currentDate = new Date();
+    const formattedDate = currentDate.toISOString().split("T")[0]; // e.g., "2025-03-02"
+    
+    // Use for...of to await each user's snapshot write
+    for (const userDoc of usersSnapshot.docs) {
+      const userId = userDoc.id;
+      const accountsSnapshot = await db.collection("users").doc(userId).collection("accounts").get();
+      let totalAssets = 0;
+      let totalLiabilities = 0;
 
-const app = express();
+      accountsSnapshot.forEach(accountDoc => {
+        const data = accountDoc.data();
+        const balance = parseFloat(data.balance) || 0;
+        if (data.account_type === "Loans") {
+          totalLiabilities += balance;
+        } else {
+          totalAssets += balance;
+        }
+      });
 
-app.use(cors({ origin: true }));
-app.use(express.json());
-
-const PLAID_CLIENT_ID = '67755355491dca001bd3009a';
-const PLAID_SECRET = '9f389e8dce2098eea8a862c9f57c8b';
-const PLAID_ENV = 'sandbox'; // 'sandbox', 'development', or 'production'
-
-const configuration = new Configuration({
-  basePath: PlaidEnvironments[PLAID_ENV],
-  baseOptions: {
-    headers: {
-      'PLAID-CLIENT-ID': PLAID_CLIENT_ID,
-      'PLAID-SECRET': PLAID_SECRET,
-      // Optionally specify 'Plaid-Version' if needed
-    },
-  },
+      const netWorth = totalAssets - totalLiabilities;
+      
+      await db.collection("users").doc(userId)
+        .collection("dailySnapshots").doc(formattedDate)
+        .set({
+          netWorth: netWorth,
+          timestamp: admin.firestore.FieldValue.serverTimestamp()
+        });
+    }
+    console.log("Daily snapshots written successfully.");
+    return null;
+  } catch (error) {
+    console.error("Error writing daily snapshots:", error);
+    throw error;
+  }
 });
 
-const client = new PlaidApi(configuration);
-
-app.post('/exchange_public_token', async (req, res) => {
-    const { public_token } = req.body;
+exports.monthlyNetWorthSnapshot = onSchedule("0 0 1 * *", {
+    timeZone: "America/Los_Angeles",
+    region: "us-central1"
+  }, async (event) => {
     try {
-      const tokenResponse = await client.itemPublicTokenExchange({
-        public_token: public_token,
-      });
-      const access_token = tokenResponse.data.access_token;
-      const item_id = tokenResponse.data.item_id;
-  
-      // TODO: Store access_token and item_id securely
-      res.json({ access_token, item_id });
+      const usersSnapshot = await db.collection("users").get();
+      const currentDate = new Date();
+      // Format current date as "YYYY-MM" for monthly snapshot
+      const formattedMonth = currentDate.toISOString().slice(0, 7);
+      
+      for (const userDoc of usersSnapshot.docs) {
+        const userId = userDoc.id;
+        const accountsSnapshot = await db.collection("users").doc(userId).collection("accounts").get();
+        let totalAssets = 0;
+        let totalLiabilities = 0;
+        
+        accountsSnapshot.forEach(accountDoc => {
+          const data = accountDoc.data();
+          const balance = parseFloat(data.balance) || 0;
+          if (data.account_type === "Loans") {
+            totalLiabilities += balance;
+          } else {
+            totalAssets += balance;
+          }
+        });
+        
+        const netWorth = totalAssets - totalLiabilities;
+        await db.collection("users").doc(userId)
+          .collection("monthlySnapshots").doc(formattedMonth)
+          .set({
+            netWorth: netWorth,
+            timestamp: admin.firestore.FieldValue.serverTimestamp()
+          });
+      }
+      console.log("Monthly snapshots written successfully.");
+      return null;
     } catch (error) {
-      console.error('Error exchanging public token:', error.response.data);
-      res.status(500).json({ error: 'An error occurred' });
+      console.error("Error writing monthly snapshots:", error);
+      throw error;
     }
   });
-  
-// Export the Express app as a Cloud Function
-exports.api = functions.https.onRequest(app);

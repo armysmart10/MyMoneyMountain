@@ -90,3 +90,36 @@ export const addTransactionAndUpdateBalance = async (userId, accountId, transact
     throw error;
   }
 };
+
+// Historical Monthly Data Helper
+export const fetchHistoricalMonthlyData = async (userId, range) => {
+  // Assumes that monthly snapshots are stored in the subcollection 'monthlySnapshots'
+  // Each document's ID can represent the month (e.g., "2023-01") and includes a 'netWorth' field.
+  const querySnapshot = await getDocs(collection(db, `users/${userId}/monthlySnapshots`));
+  let snapshots = querySnapshot.docs.map(docSnap => ({
+    ...docSnap.data(),
+    month: docSnap.id  // The document ID represents the month.
+  }));
+  // Sort snapshots chronologically; adjust this as needed (for production, use proper date comparisons).
+  snapshots.sort((a, b) => a.month.localeCompare(b.month));
+  if (range !== "max") {
+    const num = parseInt(range, 10);
+    snapshots = snapshots.slice(-num);
+  }
+  return snapshots;
+};
+
+// Historical Daily Net Worth Helper
+export const fetchHistoricalDailyNetWorth = async (userId, days) => {
+  // Assumes daily snapshots are stored in the subcollection 'dailySnapshots'
+  // Each document's ID represents the day (e.g., "2023-02-27") and includes a 'netWorth' field.
+  const querySnapshot = await getDocs(collection(db, `users/${userId}/dailySnapshots`));
+  let snapshots = querySnapshot.docs.map(docSnap => ({
+    ...docSnap.data(),
+    date: docSnap.id  // The document ID represents the date.
+  }));
+  // Sort snapshots chronologically; adjust this as needed.
+  snapshots.sort((a, b) => a.date.localeCompare(b.date));
+  snapshots = snapshots.slice(-days);
+    return snapshots;
+  };
