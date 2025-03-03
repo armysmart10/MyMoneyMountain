@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { collection, onSnapshot } from "firebase/firestore";
+import { db } from '../firebase';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line } from 'recharts';
-import { fetchAccounts, fetchHistoricalMonthlyData, fetchHistoricalDailyNetWorth } from '../firestore';
 import './Dashboard.css';
 
 const Dashboard = ({ currentUser }) => {
@@ -10,40 +11,63 @@ const Dashboard = ({ currentUser }) => {
   const [dailyData, setDailyData] = useState([]);
   const [selectedRange, setSelectedRange] = useState("12");
 
+  // Real-time listener for user accounts so that any change updates net worth instantly.
   useEffect(() => {
     if (currentUser && currentUser.uid) {
-      fetchAccounts(currentUser.uid)
-        .then((data) => {
-          setAccounts(data);
-          let totalAssets = 0, totalLiabilities = 0;
-          data.forEach((account) => {
-            const bal = parseFloat(account.balance) || 0;
-            if (account.account_type === 'Loans')
-              totalLiabilities += bal;
-            else
-              totalAssets += bal;
-          });
-          setNetWorth(totalAssets - totalLiabilities);
-        })
-        .catch(err => console.error("Error fetching accounts:", err));
+      const accountsRef = collection(db, `users/${currentUser.uid}/accounts`);
+      const unsubscribe = onSnapshot(accountsRef, (snapshot) => {
+        const accountsData = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
+        setAccounts(accountsData);
+        let totalAssets = 0;
+        let totalLiabilities = 0;
+        accountsData.forEach(account => {
+          const balance = parseFloat(account.balance) || 0;
+          // Assumption: accounts with type 'Loans' are liabilities; all others are assets.
+          if (account.account_type === 'Loans') {
+            totalLiabilities += balance;
+          } else {
+            totalAssets += balance;
+          }
+        });
+        setNetWorth(totalAssets - totalLiabilities);
+      });
+      return unsubscribe;
     }
   }, [currentUser]);
 
+  // Simulated monthly data. In production, you'd fetch historical aggregated data.
   useEffect(() => {
-    if (currentUser && currentUser.uid) {
-      fetchHistoricalMonthlyData(currentUser.uid, selectedRange)
-        .then(data => setMonthlyData(data))
-        .catch(err => console.error("Error fetching monthly data:", err));
+    let data = [];
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    // For demonstration, generate data for a full year based on current netWorth with a bit of variation.
+    for (let i = 0; i < 12; i++) {
+      data.push({
+        month: months[i],
+        netWorth: netWorth + Math.round(Math.random() * 1000 - 500)
+      });
     }
-  }, [currentUser, selectedRange]);
+    if (selectedRange !== "max") {
+      const range = parseInt(selectedRange);
+      data = data.slice(-range);
+    }
+    setMonthlyData(data);
+  }, [netWorth, selectedRange]);
 
+  // Simulated daily data for past 45 days. In production, these would come from historical snapshots.
   useEffect(() => {
-    if (currentUser && currentUser.uid) {
-      fetchHistoricalDailyNetWorth(currentUser.uid, 45)
-        .then(data => setDailyData(data))
-        .catch(err => console.error("Error fetching daily net worth:", err));
+    let data = [];
+    const today = new Date();
+    for (let i = 44; i >= 0; i--) {
+      const date = new Date(today);
+      date.setDate(today.getDate() - i);
+      const formattedDate = `${date.getMonth() + 1}/${date.getDate()}`;
+      data.push({
+        date: formattedDate,
+        netWorth: netWorth + Math.round(Math.random() * 500 - 250)
+      });
     }
-  }, [currentUser]);
+    setDailyData(data);
+  }, [netWorth]);
 
   const handleRangeChange = (e) => {
     setSelectedRange(e.target.value);
