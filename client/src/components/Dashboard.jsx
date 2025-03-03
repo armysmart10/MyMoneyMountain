@@ -10,7 +10,7 @@ const Dashboard = ({ currentUser }) => {
   const [dailyData, setDailyData] = useState([]);
   const [selectedRange, setSelectedRange] = useState("12");
 
-  // Fetch live accounts data and compute live net worth
+  // Live account data and net worth
   useEffect(() => {
     if (currentUser && currentUser.uid) {
       fetchAccounts(currentUser.uid)
@@ -18,13 +18,13 @@ const Dashboard = ({ currentUser }) => {
           setAccounts(data);
           let totalAssets = 0;
           let totalLiabilities = 0;
+          const liabilityTypes = ['Loans', 'Credit Card', 'Other-Liability'];
           data.forEach((account) => {
-            const bal = parseFloat(account.balance) || 0;
-            // Assume "Loans" accounts are liabilities; all others are assets.
-            if (account.account_type === 'Liabilities') {
-              totalLiabilities += bal;
+            const balance = parseFloat(account.balance) || 0;
+            if (liabilityTypes.includes(account.account_type)) {
+              totalLiabilities += balance;
             } else {
-              totalAssets += bal;
+              totalAssets += balance;
             }
           });
           setNetWorth(totalAssets - totalLiabilities);
@@ -33,29 +33,25 @@ const Dashboard = ({ currentUser }) => {
     }
   }, [currentUser]);
 
-  // Fetch historical monthly snapshot data and merge with live data for current month
+  // Monthly historical data merged with live data for the current month
   useEffect(() => {
     if (currentUser && currentUser.uid) {
       fetchHistoricalMonthlyData(currentUser.uid, selectedRange)
         .then((data) => {
-          // Determine current month in "YYYY-MM" format
-          const currentMonth = new Date().toISOString().slice(0,7);
-          // Compute live values from current accounts
+          const currentMonth = new Date().toISOString().slice(0, 7);
           let liveAssets = 0;
           let liveLiabilities = 0;
+          const liabilityTypes = ['Loans', 'Credit Card', 'Other-Liability'];
           accounts.forEach(account => {
-            const bal = parseFloat(account.balance) || 0;
-            if (account.account_type === 'Loans') {
-              liveLiabilities += bal;
+            const balance = parseFloat(account.balance) || 0;
+            if (liabilityTypes.includes(account.account_type)) {
+              liveLiabilities += balance;
             } else {
-              liveAssets += bal;
+              liveAssets += balance;
             }
           });
           const liveNetWorth = liveAssets - liveLiabilities;
           const liveDataPoint = { month: currentMonth, assets: liveAssets, liabilities: liveLiabilities, netWorth: liveNetWorth };
-
-          // Check if the last historical data point is for the current month;
-          // if so, replace it; otherwise, append liveDataPoint.
           if (data.length > 0) {
             if (data[data.length - 1].month === currentMonth) {
               data[data.length - 1] = liveDataPoint;
@@ -71,13 +67,13 @@ const Dashboard = ({ currentUser }) => {
     }
   }, [currentUser, selectedRange, accounts]);
 
-  // Fetch historical daily snapshot data and merge with live data for current day
+  // Daily historical data merged with live data for the current day (past 45 days)
   useEffect(() => {
     if (currentUser && currentUser.uid) {
       fetchHistoricalDailyNetWorth(currentUser.uid, 45)
         .then((data) => {
           const today = new Date();
-          const currentDate = `${today.getMonth()+1}/${today.getDate()}`;
+          const currentDate = `${today.getMonth() + 1}/${today.getDate()}`;
           const liveDataPoint = { date: currentDate, netWorth: netWorth };
           if (data.length > 0) {
             if (data[data.length - 1].date === currentDate) {
@@ -103,7 +99,7 @@ const Dashboard = ({ currentUser }) => {
       <h2>Dashboard</h2>
       <div className="net-worth">
         <h3>Current Net Worth: ${netWorth.toFixed(2)}</h3>
-        <p>{accounts.length} account{accounts.length !== 1 ? 's' : ''}</p>
+        <p>{accounts.length} account{accounts.length !== 1 ? 's' : ''} in use.</p>
       </div>
       <div className="chart-section">
         <h3>Monthly Financial Overview</h3>
