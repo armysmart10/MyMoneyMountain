@@ -9,7 +9,7 @@ const Navbar = ({ currentUser }) => {
       <div className="container">
         <Link to="/" className="logo">Money Mountain</Link>
         <ul className="nav-links">
-          <li><Link to="/dashboard">Dashboard</Link></li>
+          <li><Link to="/">Dashboard</Link></li>
           <li><Link to="/accounts">Accounts</Link></li>
           <li><Link to="/investments">Investments</Link></li>
           <li><Link to="/planning">Planning</Link></li>

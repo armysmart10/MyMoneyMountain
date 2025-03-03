@@ -1,4 +1,3 @@
-// client/src/firestore.js
 import { 
   collection, 
   getDocs, 
@@ -25,9 +24,9 @@ export const addAccount = async (userId, accountName, accountType, balance) => {
 
 export const fetchAccounts = async (userId) => {
   const querySnapshot = await getDocs(collection(db, `users/${userId}/accounts`));
-  return querySnapshot.docs.map((doc) => ({
-    ...doc.data(),
-    id: doc.id,
+  return querySnapshot.docs.map((docSnap) => ({
+    ...docSnap.data(),
+    id: docSnap.id,
   }));
 };
 
@@ -52,9 +51,9 @@ export const addTransaction = async (userId, accountId, transactionData) => {
 
 export const fetchTransactions = async (userId, accountId) => {
   const querySnapshot = await getDocs(collection(db, `users/${userId}/accounts/${accountId}/transactions`));
-  return querySnapshot.docs.map((doc) => ({
-    ...doc.data(),
-    id: doc.id,
+  return querySnapshot.docs.map((docSnap) => ({
+    ...docSnap.data(),
+    id: docSnap.id,
     accountId: accountId,
   }));
 };
@@ -91,16 +90,12 @@ export const addTransactionAndUpdateBalance = async (userId, accountId, transact
   }
 };
 
-// Historical Monthly Data Helper
 export const fetchHistoricalMonthlyData = async (userId, range) => {
-  // Assumes that monthly snapshots are stored in the subcollection 'monthlySnapshots'
-  // Each document's ID can represent the month (e.g., "2023-01") and includes a 'netWorth' field.
   const querySnapshot = await getDocs(collection(db, `users/${userId}/monthlySnapshots`));
-  let snapshots = querySnapshot.docs.map(docSnap => ({
+  let snapshots = querySnapshot.docs.map((docSnap) => ({
     ...docSnap.data(),
-    month: docSnap.id  // The document ID represents the month.
+    month: docSnap.id
   }));
-  // Sort snapshots chronologically; adjust this as needed (for production, use proper date comparisons).
   snapshots.sort((a, b) => a.month.localeCompare(b.month));
   if (range !== "max") {
     const num = parseInt(range, 10);
@@ -109,17 +104,13 @@ export const fetchHistoricalMonthlyData = async (userId, range) => {
   return snapshots;
 };
 
-// Historical Daily Net Worth Helper
 export const fetchHistoricalDailyNetWorth = async (userId, days) => {
-  // Assumes daily snapshots are stored in the subcollection 'dailySnapshots'
-  // Each document's ID represents the day (e.g., "2023-02-27") and includes a 'netWorth' field.
   const querySnapshot = await getDocs(collection(db, `users/${userId}/dailySnapshots`));
-  let snapshots = querySnapshot.docs.map(docSnap => ({
+  let snapshots = querySnapshot.docs.map((docSnap) => ({
     ...docSnap.data(),
-    date: docSnap.id  // The document ID represents the date.
+    date: docSnap.id
   }));
-  // Sort snapshots chronologically; adjust this as needed.
   snapshots.sort((a, b) => a.date.localeCompare(b.date));
   snapshots = snapshots.slice(-days);
-    return snapshots;
-  };
+  return snapshots;
+};
